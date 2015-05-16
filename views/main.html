@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <title>3 en raya</title>
+    <link href='http://fonts.googleapis.com/css?family=Press+Start+2P' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="stylesheets/game1.css" type="text/css" media="screen" charset="utf-8">
+    <script src="javascripts/jquery-2.1.3.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script src="javascripts/3EnRaya.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>
+<div id="gamecontainer">
+    <canvas id="gamecanvas" width="640" height="480" class="gamelayer">
+    </canvas>
+
+    <div id="scorescreen" class="gamelayer">
+        <span class="glypicon glyphicon glyphicon-volume-up"></span>
+        <span class="glyphicon glyphicon-repeat"></span>
+        <span id="score" data-i18n="nav.Score"></span>
+    </div>
+
+    <div id="gamestartscreen" class="gamelayer">
+        <div class="title">The TIC Game</div>
+        <ul id="nav" >
+            <li><span id="play" data-i18n="nav.play" onclick = "game.showLevelScreen()"></span></li>
+            <li><span id="settings" data-i18n="nav.settings"></span></li>
+        </ul>
+    </div>
+
+    <div id="levelselectscreen" class="gamelayer">
+        <!--TODO Action: return  -->
+        <span class="glyphicon glyphicon-remove" data-i18n="nav.return"></span>
+    </div>
+
+    <div id="loadingscreen" class="gamelayer">
+        <div id="loadingmessage"></div>
+    </div>
+
+    <div id="endingscreen" class="gamelayer">
+        <div>
+            <p id="endingmessage">The Level Is Over Message</p>
+            <p id="playcurrentlevel"><span class="glyphicon glyphicon-repeat">Replay</span></p>
+            <p id="playnextlevel"><span class="glyphicon glyphicon-forward">Next Level</span> </p>
+            <p class="showLevelScreen"><span class="glyphicon glyphicon-remove">Return</span></p>
+        </div>
+    </div>
+</div>
+</body>
+</html>
