@@ -2,14 +2,17 @@
  * Lógica de la aplicación
  */
 var Aplicacion = {
+    miTurno: null,
     turno: 1,
+    finDeJuego: "FIN_DE_JUEGO",
     /**
      * Tareas iniciales
      */
     setup: function() {
+        this.Socket.setup();
         this.cambiarPantalla(this.Cargando, this.Bienvenida);
         this.inicializarCanvas();
-        //TODO: this.Ajustes.setup();
+        this.Ajustes.setup();
         this.Bienvenida.setup(this);
         this.Juego.setup(this);
     },
@@ -70,6 +73,7 @@ var Aplicacion = {
             $(".play-button").on('click', function() {
                 aplicacion.Juego.inicializarJuego(aplicacion.Juego);
                 aplicacion.cambiarPantalla(that, aplicacion.Juego);
+                aplicacion.Socket.socket.emit('add user', new Date());
             });
         }
     },
@@ -87,7 +91,10 @@ var Aplicacion = {
     FinDeJuego: {
         selector: "ending-screen",
         indicarGanador: function(ganador) {
-            $("#winner-name").text(ganador);
+            var msg;
+            if (ganador === Aplicacion.miTurno) msg = "Has ganado";
+            else msg = "Has perdido, perdedor";
+            $("#winner-name").text(msg);
         }
     },
 
@@ -111,31 +118,32 @@ var Aplicacion = {
         selectorCanvas : "game-canvas",
         /** Fichas colocadas sobre el tablero */
         tablero: [0, 0, 0, 0, 0, 0, 0, 0, 0],
-        setup: function(aplicacion) {
+        setup: function() {
             var that = this;
             $("#" + this.selectorCanvas).on('click', function(e) {
                 var posiciones = that.obtenerFilaYColumna(that.dimensionCasilla, this.obtenerCoordenadas(e));
                 var casilla = that.obtenerCasilla(posiciones.fila, posiciones.columna);
-                if (that.movimientoEsValido(casilla, aplicacion.turno)) {
+                if (that.movimientoEsValido(casilla, Aplicacion.turno)) {
                     // Si se ha colocado una ficha nueva
-                    if (that.moverFicha(casilla, this, aplicacion.turno, that)) {
+                    if (that.moverFicha(casilla, this, Aplicacion.turno, that)) {
                         // Si el jugador ha ganado la partida, mostramos la pantalla final
-                        if (that.haGanadoPartida(aplicacion.turno, that.combinacionesGanadoras, that.tablero)) {
-                            aplicacion.FinDeJuego.indicarGanador(aplicacion.turno);
-                            aplicacion.cambiarPantalla(that, aplicacion.FinDeJuego);
-                            // Si el jugador no ha ganado aún, el turno cambia
-                        } else {
-                            that.cambiarTurno(aplicacion);
+                        if (that.haGanadoPartida(Aplicacion.turno, that.combinacionesGanadoras, that.tablero)) {
+                            Aplicacion.FinDeJuego.indicarGanador(Aplicacion.turno);
+                            Aplicacion.cambiarPantalla(that, Aplicacion.FinDeJuego);
+                            Aplicacion.Socket.enviarFinDeJuego();
+                        } else { // Si el jugador no ha ganado aún, el turno cambia
+                            Aplicacion.Socket.enviarMovimiento(that.tablero);
+                            that.cambiarTurno();
                         }
                     }
                 }
             });
         },
 
-        cambiarTurno: function(juego) {
-            if (juego.turno === 1) juego.turno = 2;
-            else juego.turno = 1;
-            $("#player-turn").text(juego.turno);
+        cambiarTurno: function() {
+            if (Aplicacion.turno === 1) Aplicacion.turno = 2;
+            else Aplicacion.turno = 1;
+            $("#player-turn").text(Aplicacion.turno);
         },
 
         /**
@@ -189,41 +197,8 @@ var Aplicacion = {
         moverFicha: function(casilla, canvas, jugador, juego) {
             var tablero = juego.tablero,
                 fichaPuesta = _ponerFichaLogica();
-            _repintarTablero();
+            juego.repintarTablero();
             return fichaPuesta;
-
-            function _repintarTablero() {
-                var dimension = juego.dimensionCasilla,
-                    ctx = canvas.getContext("2d"),
-                    fila,
-                    columna;
-
-                // Vaciamos el tablero
-                __borrarTablero();
-                // Repintamos todas las casillas
-                for (var i = 0; i < tablero.length; i++) {
-                    fila = parseInt(i / 3);
-                    columna = i % 3;
-                    __dibujar(tablero[i]);
-                }
-
-
-                function __borrarTablero() {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                }
-
-                function __dibujar(jugador) {
-                    if (jugador !== 0) {
-                        var altura = dimension - 40,
-                            x = columna * (dimension + 20) + (columna * 2 + 1) * 20,
-                            y = fila * dimension + 20,
-                            imagen;
-                        if (jugador === 1) imagen = juego.imagenJugador1;
-                        else imagen = juego.imagenJugador2;
-                        ctx.drawImage(imagen, x, y, dimension, altura);
-                    }
-                }
-            }
 
             /**
              * Almacena el movimiento realizado por el jugador
@@ -242,11 +217,11 @@ var Aplicacion = {
         },
 
         /**
-         * Determina si la casilla en la que se intenta colocar una ficha está libre
+         * Determina si el jugador puede mover y si la casilla en la que se intenta colocar una ficha está libre
          */
         movimientoEsValido: function(casilla, jugador) {
             var valor = this.tablero[casilla];
-            return valor === 0 || valor === jugador;
+            return Aplicacion.turno === Aplicacion.miTurno && (valor === 0 || valor === jugador);
         },
 
         /**
@@ -277,9 +252,104 @@ var Aplicacion = {
                 }
                 return variableAfectada;
             }
+        },
+
+        repintarTablero: function() {
+            var juego = Aplicacion.Juego,
+                tablero = juego.tablero,
+                dimension = juego.dimensionCasilla,
+                canvas = document.getElementById(Aplicacion.Juego.selectorCanvas),
+                ctx = canvas.getContext("2d"),
+                fila,
+                columna;
+
+            // Vaciamos el tablero
+            __borrarTablero();
+            // Repintamos todas las casillas
+            for (var i = 0; i < tablero.length; i++) {
+                fila = parseInt(i / 3);
+                columna = i % 3;
+                __dibujar(tablero[i]);
+            }
+
+
+            function __borrarTablero() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+
+            function __dibujar(jugador) {
+                if (jugador !== 0) {
+                    var altura = dimension - 40,
+                        x = columna * (dimension + 20) + (columna * 2 + 1) * 20,
+                        y = fila * dimension + 20,
+                        imagen;
+                    if (jugador === 1) imagen = juego.imagenJugador1;
+                    else imagen = juego.imagenJugador2;
+                    ctx.drawImage(imagen, x, y, dimension, altura);
+                }
+            }
+        }
+    },
+
+    Socket: {
+        socket: null,
+        setup: function() {
+            this.socket = io();
+            this.conectarse();
+            this.recibirMovimiento();
+
+            // Whenever the server emits 'user joined', log it in the chat body
+            /*socket.on('user joined', function (data) {
+            });
+
+            // Whenever the server emits 'user left', log it in the chat body
+            socket.on('user left', function (data) {
+            });*/
+        },
+
+        /**
+         * Lógica al empezar la partida: asignación del turno del jugador
+         */
+        conectarse: function() {
+            // Whenever the server emits 'login', log the login message
+            this.socket.on('login', function (data) {
+                Aplicacion.miTurno = data.numUsers % 2; // Este valor puede ser mayor que 2, por lo que usamos el módulo
+                if (Aplicacion.miTurno === 0) Aplicacion.miTurno = 2;
+                $("#player-id").text(Aplicacion.miTurno);
+            });
+        },
+
+        /**
+         * Indica al otro jugador que la partida ha terminado
+         */
+        enviarFinDeJuego: function() {
+            this.socket.emit('new message', Aplicacion.finDeJuego);
+        },
+
+        /**
+         * Envía al otro participante el movimiento realizado por el jugador
+         * @param {Array} tablero
+         */
+        enviarMovimiento: function(tablero) {
+            this.socket.emit('new message', tablero);
+        },
+
+        /**
+         * Recibe el mensaje de que se ha efectuado un nuevo movimiento
+         */
+        recibirMovimiento: function() {
+            this.socket.on('new message', function (data) {
+                if (data.message === Aplicacion.finDeJuego) {
+                    Aplicacion.FinDeJuego.indicarGanador(Aplicacion.turno);
+                    Aplicacion.cambiarPantalla(Aplicacion.Juego, Aplicacion.FinDeJuego);
+                } else {
+                    Aplicacion.Juego.tablero = data.message;
+                    Aplicacion.Juego.repintarTablero();
+                    Aplicacion.Juego.cambiarTurno();
+                }
+            });
         }
     }
-
 };
 
 $(window).on('load', function() {
