@@ -1,27 +1,18 @@
-body{
-    font-family: 'Press Start 2P', cursive;
-
-}
-#gamecontainer {
-    width:640px;
-    height:480px;
-    background: url('../images/splashimage.jpg');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-color: #33870b;
-    border: 1px solid black;
+#game-container {
+    background: url('../images/background.jpg') center no-repeat;
+    width: 800px;
+    height: 480px;
 }
 .gamelayer {
     width:640px;
     height:480px;
     position:absolute;
-    display:none;
 }
-#gamestartscreen {
+#welcome-screen {
     padding-top:250px;
     text-align:center;
 }
-#gamestartscreen img {
+#welcome-screen img {
     margin:10px;
     cursor:pointer;
 }
@@ -37,43 +28,45 @@ body{
     list-style-type: none;
 }
 
-.title{
-    top:0;
-    font-size: 26px;
-    font-weight: 100;
-    color:#fff;
-    position:fixed;
-    margin:100px;
-
+canvas {
+    background: url(../images/grid.jpg);
+    height: 480px;
+    width: 480px;
+    position: relative;
+    margin: auto;
+    display: block;
 }
 
-
-#levelselectscreen {
-    padding-top:150px;
-    padding-left:50px;
-}
-#levelselectscreen input {
-    margin:20px;
-    cursor:pointer;
-    color:yellow;
-    font-size: 20px;
-    width:64px;
-    height:64px;
-    border-radius: 10px;
-    border: 2px solid;
-    background-color: #132C10;
-
+#settings {
+    float: right;
+    padding: 20px;
 }
 
-#loadingscreen {
-    background:rgba(100,100,100,0.3);
+#loading-screen {
+    width: inherit;
+    height: inherit;
+    position: relative;
 }
-#loadingmessage {
-    margin-top:100px;
-    text-align:center;
-    height:148px;
-    color:white;
-    background:url('../image/square_loader.gif') no-repeat center;
-    background-size: 80px 60px;
-    font:12px Arial;
+
+div.message {
+    position: absolute;
+    color: white;
+    bottom: 10px;
+    font-size: 24px;
+    margin-left: 250px;
+}
+
+div.turno {
+    float: right;
+    margin-top: -420px;
+    color: white;
+    font-size: 24px;
+}
+
+label {
+    color: white;
+}
+
+.play-button {
+    cursor: pointer;
 }
