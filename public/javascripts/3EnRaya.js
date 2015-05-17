@@ -54,7 +54,7 @@ var Aplicacion = {
     Ajustes: {
         selector: "settings-screen",
         setup: function() {
-            var elem = $("#musica")[0];
+            var elem = document.getElementById("musica");
             elem.play();
             $("#audio-toggle").on('change', function() {
                 if (elem.paused) elem.play();
