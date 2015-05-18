@@ -17,15 +17,24 @@
     cursor:pointer;
 }
 
+#nav {
+    margin-left: 100px;
+}
+
 #nav li {
     padding: 10px;
     border-radius: 20px;
     border: 2px solid;
     background-color: #FFF;
-    margin:5px;
+    margin:auto;
     width: 200px;
+    height: 40px;
     cursor:pointer;
     list-style-type: none;
+}
+
+#nav li span {
+    font-size: 36px;
 }
 
 canvas {
@@ -54,6 +63,7 @@ div.message {
     bottom: 10px;
     font-size: 24px;
     margin-left: 250px;
+    text-align: center;
 }
 
 div.turno {
@@ -61,6 +71,7 @@ div.turno {
     margin-top: -420px;
     color: white;
     font-size: 24px;
+    text-align: right;
 }
 
 label {

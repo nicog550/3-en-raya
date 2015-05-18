@@ -3,7 +3,7 @@
  */
 var Aplicacion = {
     miTurno: null,
-    turno: 1,
+    turno: 2, // Inicializamos a 2 porque al conectarse haremos un cambio de turno y se pondrá a 1
     finDeJuego: "FIN_DE_JUEGO",
     /**
      * Tareas iniciales
@@ -143,7 +143,10 @@ var Aplicacion = {
         cambiarTurno: function() {
             if (Aplicacion.turno === 1) Aplicacion.turno = 2;
             else Aplicacion.turno = 1;
-            $("#player-turn").text(Aplicacion.turno);
+            var textoTurno;
+            if (Aplicacion.turno === Aplicacion.miTurno) textoTurno = "Es tu turno";
+            else textoTurno = "Turno del Jugador " + Aplicacion.turno;
+            $("#player-turn").text(textoTurno);
         },
 
         /**
@@ -316,6 +319,7 @@ var Aplicacion = {
                 Aplicacion.miTurno = data.numUsers % 2; // Este valor puede ser mayor que 2, por lo que usamos el módulo
                 if (Aplicacion.miTurno === 0) Aplicacion.miTurno = 2;
                 $("#player-id").text(Aplicacion.miTurno);
+                Aplicacion.Juego.cambiarTurno();
             });
         },
 
